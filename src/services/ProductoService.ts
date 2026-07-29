@@ -24,3 +24,46 @@ export async function obtenerProductos(){
     return data;
 
 }
+
+
+export async function crearProducto(
+
+    nombre:string,
+
+    descripcion:string,
+
+    precio:number,
+
+    stock:number,
+
+    imagen:string,
+
+    categoria_id:number
+
+){
+
+    const { error } = await supabase
+
+        .from("productos")
+
+        .insert({
+
+            nombre,
+
+            descripcion,
+
+            precio,
+
+            stock,
+
+            imagen,
+
+            categoria_id,
+
+            estado:true
+
+        });
+
+    return error;
+
+}
