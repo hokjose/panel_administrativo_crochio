@@ -1,0 +1,167 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { supabase } from "../../lib/supabase";
+
+const { data: categorias } = await supabase
+  .from("categorias")
+  .select("*")
+  .order("id");
+---
+
+<AdminLayout title="Categorias">
+  <h1 class="text-3xl font-bold mb-6">categorias</h1>
+
+  <form id="formCategoria" class="space-y-4 mb-8">
+    <input
+      name="nombre"
+      placeholder="Nombre"
+      class="border p-2 rounded w-full"
+      required
+    />
+
+    <textarea
+      name="descripcion"
+      placeholder="descripcion"
+      class="border p-2 rounded w-full"></textarea>
+
+    <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded">
+      Guardar
+    </button>
+
+    <p id="mensaje" class="text-red-600 mt-2"></p>
+  </form>
+
+  <p id="mensaje" class="text-red-600 mt-2"></p>
+
+  <table class="w-full border">
+    <thead>
+      <tr>
+        <th class="border p-2">ID</th>
+
+        <th class="border p-2">Nombre</th>
+
+        <th class="border p-2">Descripción</th>
+
+        <th class="border p-2">Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {
+        categorias?.map((cat) => (
+          <tr>
+            <td class="border p-2">{cat.id}</td>
+
+            <td class="border p-2">{cat.nombre}</td>
+
+            <td class="border p-2">{cat.descripcion}</td>
+
+            <td class="flex gap-2">
+              <button
+                data-id={cat.id}
+                data-nombre={cat.nombre}
+                data-descripcion={cat.descripcion}
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded btnEditar"
+              >
+                ?? Editar
+              </button>
+
+              <button
+                data-id={cat.id}
+                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded btnEliminar"
+              >
+                ?? Eliminar
+              </button>
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+  <script>
+    let categoriaEditando = null;
+    const form = document.getElementById("formCategoria");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const datos = new FormData(form);
+
+      const categoria = {
+        id: categoriaEditando,
+
+        nombre: datos.get("nombre"),
+
+        descripcion: datos.get("descripcion"),
+      };
+      const respuesta = await fetch("/api/categorias", {
+        method: categoriaEditando ? "PUT" : "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(categoria),
+      });
+
+      const resultado = await respuesta.json();
+
+      document.getElementById("mensaje").textContent = resultado.message;
+
+      if (resultado.success) {
+        form.reset();
+        categoriaEditando = null;
+
+        document.querySelector("button[type='submit']").textContent = "Guardar";
+
+        setTimeout(() => {
+          location.reload();
+        }, 800);
+      }
+    });
+
+    async function eliminarCategoria(id) {
+      const confirmar = confirm("¿Eliminar categoría?");
+
+      if (!confirmar) return;
+
+      const respuesta = await fetch("/api/categorias", {
+        method: "DELETE",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({ id }),
+      });
+
+      const resultado = await respuesta.json();
+
+      alert(resultado.message);
+
+      if (resultado.success) {
+        location.reload();
+      }
+    }
+
+    document.querySelectorAll(".btnEliminar").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        eliminarCategoria(btn.dataset.id);
+      });
+    });
+
+    document.querySelectorAll(".btnEditar").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        categoriaEditando = btn.dataset.id;
+
+        document.querySelector("[name='nombre']").value = btn.dataset.nombre;
+
+        document.querySelector("[name='descripcion']").value =
+          btn.dataset.descripcion;
+
+        document.querySelector("button[type='submit']").textContent =
+          "Actualizar";
+      });
+    });
+  </script>
+</AdminLayout>

@@ -1,0 +1,358 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { supabase } from "../../lib/supabase";
+
+const { data: categorias, error } = await supabase
+  .from("categorias")
+  .select("*");
+
+console.log("CATEGORIAS:", categorias);
+
+console.log("ERROR:", error);
+
+const { data: productos } = await supabase.from("productos").select(`
+    *,
+    categorias(nombre)
+  `);
+---
+
+<AdminLayout title="Productos">
+  <h1 class="text-3xl font-bold mb-6">Productos</h1>
+
+  <form id="formProducto" class="space-y-4">
+    <input
+      name="nombre"
+      placeholder="Nombre"
+      class="border p-2 rounded w-full"
+      required
+    />
+
+    <textarea
+      name="descripcion"
+      placeholder="Descripción"
+      class="border p-2 rounded w-full"></textarea>
+
+    <input
+      type="number"
+      name="precio"
+      placeholder="Precio"
+      class="border p-2 rounded w-full"
+      required
+    />
+
+    <input
+      type="number"
+      name="stock"
+      placeholder="Stock"
+      class="border p-2 rounded w-full"
+      required
+    />
+
+    <label class="block font-medium mb-2"> Imagen del producto </label>
+
+    <input
+      type="file"
+      id="imagen"
+      name="imagen"
+      accept="image/png,image/jpeg,image/jpg,image/webp"
+      class="border p-2 rounded w-full"
+    />
+
+    <select name="categoria_id" class="border p-2 rounded w-full" required>
+      <option value=""> seleccione categoría</option>
+
+      {categorias?.map((cat) => <option value={cat.id}>{cat.nombre}</option>)}
+    </select>
+
+    <button
+      id="btnGuardar"
+      type="submit"
+      class="bg-blue-600 text-white px-4 py-2 rounded"
+    >
+      Guardar
+    </button>
+  </form>
+
+  <p id="mensaje" class="mt-3"></p>
+
+  //para editar producto
+  <div id="modalEditar" class="hidden mt-6 border p-4 rounded">
+    <h2 class="text-xl font-bold mb-4">Editar producto</h2>
+
+    <input id="editId" type="hidden" />
+
+    <input
+      id="editNombre"
+      class="border p-2 rounded w-full mb-2"
+      placeholder="Nombre"
+    />
+
+    <textarea
+      id="editDescripcion"
+      class="border p-2 rounded w-full mb-2"
+      placeholder="DescripciÃ³n"
+    >
+    </textarea>
+
+    <input
+      id="editPrecio"
+      type="number"
+      class="border p-2 rounded w-full mb-2"
+      placeholder="Precio"
+    />
+
+    <input
+      id="editStock"
+      type="number"
+      class="border p-2 rounded w-full mb-2"
+      placeholder="Stock"
+    />
+
+    <input
+      type="file"
+      id="imagen"
+      name="imagen"
+      accept="image/png,image/jpeg,image/jpg,image/webp"
+      class="border p-2 rounded w-full"
+    />
+
+    <button
+      id="btnActualizar"
+      class="bg-green-600 text-white px-4 py-2 rounded"
+    >
+      Actualizar
+    </button>
+  </div>
+
+  <script type="module">
+    import { supabase } from "../../lib/supabase";
+    let productoEditando = null;
+    const form = document.getElementById("formProducto");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const datos = new FormData(form);
+
+      // Obtener la imagen seleccionada
+      const archivo = datos.get("imagen");
+      console.log("ARCHIVO SELECCIONADO:", archivo);
+
+      // Variables para guardar la URL
+      let urlImagen = "";
+      if (archivo && archivo.size > 0) {
+        // Crear un nombre único para la imagen
+        const nombreArchivo = Date.now() + "_" + archivo.name;
+
+        // Subir al bucket "productos"
+        const { data, error } = await supabase.storage
+          .from("productos")
+          .upload(nombreArchivo, archivo);
+
+        console.log("DATA STORAGE:", data);
+        console.log("ERROR STORAGE:", error);
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        // Obtener la URL pública
+        urlImagen = supabase.storage
+          .from("productos")
+          .getPublicUrl(nombreArchivo).data.publicUrl;
+
+        console.log("URL IMAGEN:", urlImagen);
+      }
+      const producto = {
+        nombre: datos.get("nombre"),
+        descripcion: datos.get("descripcion"),
+        precio: Number(datos.get("precio")),
+        stock: Number(datos.get("stock")),
+        imagen: urlImagen,
+        categoria_id: datos.get("categoria_id"),
+      };
+
+      let metodo = "POST";
+
+      let url = "/api/productos";
+
+      if (productoEditando) {
+        metodo = "PUT";
+      }
+
+      const respuesta = await fetch(url, {
+        method: metodo,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(producto),
+      });
+
+      const resultado = await respuesta.json();
+
+      const mensaje = document.getElementById("mensaje");
+
+      mensaje.textContent = resultado.message;
+
+      if (resultado.success) {
+        form.reset();
+
+        productoEditando = null;
+
+        document.getElementById("btnGuardar").textContent = "Guardar";
+
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      }
+    });
+
+    // BOTON ELIMINAR PRODUCTO
+    document.querySelectorAll(".btnEliminar").forEach((boton) => {
+      boton.addEventListener("click", async () => {
+        const id = boton.dataset.id;
+
+        const confirmar = confirm("Â¿Desea eliminar este producto?");
+
+        if (!confirmar) return;
+
+        const respuesta = await fetch("/api/productos", {
+          method: "DELETE",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            id: id,
+          }),
+        });
+
+        const resultado = await respuesta.json();
+
+        console.log("RESPUESTA API:", resultado);
+
+        alert(resultado.message);
+
+        if (resultado.success) {
+          location.reload();
+        }
+      });
+    });
+    // EDITAR PRODUCTO
+
+    document.querySelectorAll(".btnEditar").forEach((boton) => {
+      const id = boton.dataset.id;
+      boton.addEventListener("click", async () => {
+        const id = boton.dataset.id;
+
+        const respuesta = await fetch(`/api/productos?id=${id}`);
+
+        const producto = await respuesta.json();
+        productoEditando = producto.id;
+
+        console.log("ID EDITANDO:", productoEditando);
+
+        console.log("Producto:", producto);
+
+        // llenar formulario
+
+        document.querySelector("[name='nombre']").value = producto.nombre;
+
+        document.querySelector("[name='descripcion']").value =
+          producto.descripcion ?? "";
+
+        document.querySelector("[name='precio']").value = producto.precio;
+
+        document.querySelector("[name='stock']").value = producto.stock;
+
+        document.querySelector("[name='imagen']").value = producto.imagen ?? "";
+
+        document.querySelector("[name='categoria_id']").value =
+          producto.categoria_id;
+
+        // guardamos el id que estamos editando
+
+        productoEditando = producto.id;
+
+        // cambiamos texto del botÃ³n
+
+        document.getElementById("btnGuardar").textContent = "Actualizar";
+
+        // subir al formulario
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      });
+    });
+  </script>
+
+  <table class="w-full border mt-8">
+    <thead>
+      <tr>
+        <th class="border p-2">Imagen</th>
+
+        <th class="border p-2"> Codigo </th>
+
+        <th class="border p-2"> Nombre </th>
+
+        <th class="border p-2"> Categoria </th>
+
+        <th class="border p-2"> Precio </th>
+
+        <th class="border p-2"> Stock </th>
+
+        <th class="border p-2">Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {
+        productos?.map((prod) => (
+          <tr>
+            <td class="border p-2">
+              {prod.imagen ? (
+                <img
+                  src={prod.imagen}
+                  alt={prod.nombre}
+                  class="w-16 h-16 object-cover rounded"
+                />
+              ) : (
+                <span>Sin imagen</span>
+              )}
+            </td>
+
+            <td class="border p-2">{prod.codigo}</td>
+
+            <td class="border p-2">{prod.nombre}</td>
+
+            <td class="border p-2">{prod.categorias?.nombre}</td>
+
+            <td class="border p-2">S/. {prod.precio}</td>
+
+            <td class="border p-2">{prod.stock}</td>
+
+            <td class="border p-2 flex gap-2">
+              <button
+                data-id={prod.id}
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded btnEditar"
+              >
+                Editar
+              </button>
+
+              <button
+                data-id={prod.id}
+                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded btnEliminar"
+              >
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</AdminLayout>

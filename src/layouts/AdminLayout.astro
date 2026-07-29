@@ -1,0 +1,68 @@
+---
+import "../styles/global.css";
+const { title } = Astro.props;
+---
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+  </head>
+  <body class="flex min-h-screen bg-gray-50">
+    <aside class="w-64 bg-slate-900 text-white p-6">
+      <h2 class="text-xl font-bold text-cyan-400 mb-8">negocio de CROCHIO</h2>
+      <nav class="space-y-4">
+        <a href="/admin" class="block py-2 px-4 hover:bg-slate-800 rounded"
+          >Dashboard</a
+        >
+        <a
+          href="/admin/productos"
+          class="block py-2 px-4 hover:bg-slate-800 rounded">Productos</a
+        >
+        <a
+          href="/admin/categorias"
+          class="block py-2 px-4 hover:bg-slate-800 rounded">categorias</a
+        >
+
+        <a
+          href="/admin/historial"
+          class="block py-2 px-4 hover:bg-slate-800 rounded"
+          >Historial de ventas</a
+        >
+
+        <button
+          id="btnCerrarSesion"
+          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition"
+        >
+          Cerrar sesion
+        </button>
+      </nav>
+    </aside>
+    <main class="flex-1 p-8">
+      <slot />
+    </main>
+
+    <script type="module">
+      import { supabase } from "../lib/supabase";
+
+      const btnCerrarSesion = document.getElementById("btnCerrarSesion");
+
+      btnCerrarSesion?.addEventListener("click", async () => {
+        const confirmar = confirm("¿Deseas cerrar sesión?");
+
+        if (!confirmar) return;
+
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        window.location.href = "/";
+      });
+    </script>
+  </body>
+</html>
