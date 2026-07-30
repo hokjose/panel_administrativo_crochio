@@ -14,30 +14,100 @@ const { data: productos } = await supabase.from("productos").select(`
     *,
     categorias(nombre)
   `);
+// 👈 AQUÍ DEFINIMOS EL TOTAL DE PRODUCTOS CORRECTAMENTE
+const totalProductos = productos?.length || 0;
 ---
 
 <AdminLayout title="Productos">
-  <h1 class="text-3xl font-bold mb-6">Productoss</h1>
-
-  <div class="flex justify-between items-center mb-6">
-    <h2 class="text-2xl font-bold text-gray-800">Gestión de Productos</h2>
-    <button
-      id="btnAbrirModal"
-      class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-md shadow-rose-200 transition flex items-center gap-2"
+  <!-- Cabecera y controles superiores -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+    {/* Fila 1: Título, Contador y Botón de Agregar */}
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
     >
-      <svg
-        width="20"
-        height="20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        viewBox="0 0 24 24"
+      <div class="flex items-center gap-3">
+        <h2 class="text-2xl font-bold text-gray-800">Gestión de Productos</h2>
+        <!-- Insignia con la cantidad de productos registrados -->
+        <span
+          class="bg-rose-50 text-rose-700 text-xs font-semibold px-3 py-1 rounded-full border border-rose-100"
+        >
+          {totalProductos}
+          {totalProductos === 1 ? "producto" : "productos"}
+        </span>
+      </div>
+
+      <button
+        id="btnAbrirModal"
+        class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-md shadow-rose-200 transition flex items-center gap-2 text-sm"
       >
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"
-        ></path>
-      </svg>
-      Agregar producto
-    </button>
+        <svg
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4v16m8-8H4"></path>
+        </svg>
+        Agregar producto
+      </button>
+    </div>
+
+    {/* Fila 2: Lupa de buscador y Selector deslizable de categorías */}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* 1. Lupa de Buscador */}
+      <div class="relative">
+        <div
+          class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400"
+        >
+          <svg
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m21 21-4.35-4.35"></path>
+          </svg>
+        </div>
+        <input
+          type="text"
+          id="inputBuscador"
+          placeholder="Buscar por nombre o código..."
+          class="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition"
+        />
+      </div>
+
+      {/* 2. Ventana deslizable (Select) de Categorías con opción "Todos" */}
+      <div>
+        <select
+          id="selectFiltroCategoria"
+          class="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:bg-white transition cursor-pointer"
+        >
+          <option value="todos">📁 Todas las categorías (Todos)</option>
+          {
+            categorias?.map((cat) => (
+              <option value={cat.id}>{cat.nombre}</option>
+            ))
+          }
+        </select>
+      </div>
+    </div>
+    <div
+      id="mensajeSinResultados"
+      class="hidden text-center py-8 text-gray-500 text-sm font-medium"
+    >
+      Lo sentimos CROCHIO 🥹🥹aun no tenemos ese producto en nuestro catalogo
+    </div>
   </div>
 
   <div
@@ -50,7 +120,12 @@ const { data: productos } = await supabase.from("productos").select(`
       <div
         class="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50"
       >
-        <h3 class="font-bold text-lg text-gray-800">Nuevo Producto</h3>
+        <div class="mb-4">
+          <h3 class="font-bold text-lg text-blue-800">Nuevo Producto</h3>
+          <h4 class="text-xs text-gray-500 mt-0.5">
+            A continuación en esta sección ingresa los campos del nuevo producto
+          </h4>
+        </div>
         <button
           id="btnCerrarModal"
           class="text-gray-400 hover:text-gray-600 p-1 rounded-lg transition"
@@ -159,20 +234,39 @@ const { data: productos } = await supabase.from("productos").select(`
           <div
             class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100"
           >
-            <button
-              type="button"
-              id="btnCancelar"
-              class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition"
+            <!-- Botones de Acción -->
+            <div
+              class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100"
             >
-              Cancelar
-            </button>
-            <button
-              id="btnGuardar"
-              type="submit"
-              class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-md shadow-rose-200 transition"
-            >
-              Guardar producto
-            </button>
+              <button
+                type="button"
+                id="btnCancelar"
+                class="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 transition"
+              >
+                Cancelar
+              </button>
+
+              <div class="flex items-center gap-3">
+                <button
+                  id="btnGuardar"
+                  type="submit"
+                  class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium shadow-md shadow-rose-200 transition"
+                >
+                  Guardar producto
+                </button>
+
+                <!-- Spinner de carga (oculto por defecto con 'hidden') -->
+                <div id="spinnerGuardar" class="hidden flex items-center gap-2">
+                  <div
+                    class="w-5 h-5 border-2 border-rose-300 border-t-rose-600 rounded-full animate-spin"
+                  >
+                  </div>
+                  <span class="text-xs text-gray-500 font-medium"
+                    >Procesando...</span
+                  >
+                </div>
+              </div>
+            </div>
           </div>
         </form>
       </div>
@@ -233,57 +327,102 @@ const { data: productos } = await supabase.from("productos").select(`
     import { supabase } from "../../lib/supabase";
     let productoEditando = null;
     const form = document.getElementById("formProducto");
+    const modal = document.getElementById("modalProducto");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+
+      const mensaje = document.getElementById("mensaje");
+      if (mensaje) {
+        mensaje.className = "text-center mt-4 text-sm text-red-600";
+      }
+
+      // VALIDACIÓN DE CAMPOS VACÍOS (tus validaciones previas...)
+      const nombreVal = form.querySelector("[name='nombre']").value.trim();
+      const precioVal = form.querySelector("[name='precio']").value;
+      const stockVal = form.querySelector("[name='stock']").value;
+      const categoriaVal = form.querySelector("[name='categoria_id']").value;
+
+      if (!nombreVal) {
+        if (mensaje)
+          mensaje.textContent = "¡Te falta ingresar el campo: Nombre!";
+        form.querySelector("[name='nombre']").focus();
+        return;
+      }
+      if (!precioVal) {
+        if (mensaje)
+          mensaje.textContent = "¡Te falta ingresar el campo: Precio!";
+        form.querySelector("[name='precio']").focus();
+        return;
+      }
+      if (!stockVal) {
+        if (mensaje)
+          mensaje.textContent = "¡Te falta ingresar el campo: Stock!";
+        form.querySelector("[name='stock']").focus();
+        return;
+      }
+      if (!categoriaVal) {
+        if (mensaje)
+          mensaje.textContent = "¡Te falta seleccionar una Categoría!";
+        form.querySelector("[name='categoria_id']").focus();
+        return;
+      }
+
+      if (mensaje) mensaje.textContent = "";
+
+      // 👉 ACTIVAR SPINNER Y BLOQUEAR BOTÓN AQUÍ
+      const spinnerGuardar = document.getElementById("spinnerGuardar");
+      const btnGuardar = document.getElementById("btnGuardar");
+      spinnerGuardar?.classList.remove("hidden");
+      spinnerGuardar?.classList.add("flex");
+      if (btnGuardar) btnGuardar.disabled = true;
 
       const datos = new FormData(form);
 
       // Obtener la imagen seleccionada
       const archivo = datos.get("imagen");
-      console.log("ARCHIVO SELECCIONADO:", archivo);
-
-      // Variables para guardar la URL
       let urlImagen = "";
+
+      // Si se seleccionó una nueva imagen, la subimos
       if (archivo && archivo.size > 0) {
-        // Crear un nombre único para la imagen
         const nombreArchivo = Date.now() + "_" + archivo.name;
 
-        // Subir al bucket "productos"
         const { data, error } = await supabase.storage
           .from("productos")
           .upload(nombreArchivo, archivo);
 
-        console.log("DATA STORAGE:", data);
-        console.log("ERROR STORAGE:", error);
-
         if (error) {
           alert(error.message);
+          // Ocultar spinner si hay error
+          spinnerGuardar?.classList.add("hidden");
+          if (btnGuardar) btnGuardar.disabled = false;
           return;
         }
 
-        // Obtener la URL pública
         urlImagen = supabase.storage
           .from("productos")
           .getPublicUrl(nombreArchivo).data.publicUrl;
-
-        console.log("URL IMAGEN:", urlImagen);
       }
+
       const producto = {
         nombre: datos.get("nombre"),
         descripcion: datos.get("descripcion"),
         precio: Number(datos.get("precio")),
         stock: Number(datos.get("stock")),
-        imagen: urlImagen,
         categoria_id: datos.get("categoria_id"),
       };
 
       let metodo = "POST";
-
       let url = "/api/productos";
 
       if (productoEditando) {
         metodo = "PUT";
+        producto.id = productoEditando;
+        if (urlImagen) {
+          producto.imagen = urlImagen;
+        }
+      } else {
+        producto.imagen = urlImagen;
       }
 
       const respuesta = await fetch(url, {
@@ -296,20 +435,24 @@ const { data: productos } = await supabase.from("productos").select(`
 
       const resultado = await respuesta.json();
 
-      const mensaje = document.getElementById("mensaje");
-
-      mensaje.textContent = resultado.message;
+      if (mensaje) mensaje.textContent = resultado.message;
 
       if (resultado.success) {
         form.reset();
-
         productoEditando = null;
+        if (btnGuardar) btnGuardar.textContent = "Guardar producto";
 
-        document.getElementById("btnGuardar").textContent = "Guardar";
+        // Cerrar modal
+        modal?.classList.add("hidden");
+        modal?.classList.remove("flex");
 
         setTimeout(() => {
           location.reload();
         }, 1000);
+      } else {
+        // Si falla en el servidor, ocultamos el spinner y reactivamos el botón
+        spinnerGuardar?.classList.add("hidden");
+        if (btnGuardar) btnGuardar.disabled = false;
       }
     });
 
@@ -317,27 +460,19 @@ const { data: productos } = await supabase.from("productos").select(`
     document.querySelectorAll(".btnEliminar").forEach((boton) => {
       boton.addEventListener("click", async () => {
         const id = boton.dataset.id;
-
-        const confirmar = confirm("Â¿Desea eliminar este producto?");
+        const confirmar = confirm("¿Desea eliminar este producto?");
 
         if (!confirmar) return;
 
         const respuesta = await fetch("/api/productos", {
           method: "DELETE",
-
           headers: {
             "Content-Type": "application/json",
           },
-
-          body: JSON.stringify({
-            id: id,
-          }),
+          body: JSON.stringify({ id: id }),
         });
 
         const resultado = await respuesta.json();
-
-        console.log("RESPUESTA API:", resultado);
-
         alert(resultado.message);
 
         if (resultado.success) {
@@ -345,68 +480,51 @@ const { data: productos } = await supabase.from("productos").select(`
         }
       });
     });
-    // EDITAR PRODUCTO
 
+    // EDITAR PRODUCTO
     document.querySelectorAll(".btnEditar").forEach((boton) => {
-      const id = boton.dataset.id;
       boton.addEventListener("click", async () => {
         const id = boton.dataset.id;
 
         const respuesta = await fetch(`/api/productos?id=${id}`);
-
         const producto = await respuesta.json();
+
         productoEditando = producto.id;
 
-        console.log("ID EDITANDO:", productoEditando);
-
-        console.log("Producto:", producto);
-
-        // llenar formulario
-
+        // Llenar formulario
         document.querySelector("[name='nombre']").value = producto.nombre;
-
         document.querySelector("[name='descripcion']").value =
           producto.descripcion ?? "";
-
         document.querySelector("[name='precio']").value = producto.precio;
-
         document.querySelector("[name='stock']").value = producto.stock;
-
-        document.querySelector("[name='imagen']").value = producto.imagen ?? "";
-
         document.querySelector("[name='categoria_id']").value =
           producto.categoria_id;
 
-        // guardamos el id que estamos editando
+        // Nota: No intentamos asignar valor al input file por seguridad del navegador,
+        // la imagen actual se puede manejar en el backend si no se sube una nueva.
 
-        productoEditando = producto.id;
-
-        // cambiamos texto del botÃ³n
-
+        // Cambiar texto del botón
         document.getElementById("btnGuardar").textContent = "Actualizar";
 
-        // subir al formulario
-
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
+        // ABRIR EL MODAL AUTOMÁTICAMENTE PARA QUE SE VEA EL FORMULARIO LLENO
+        modal?.classList.remove("hidden");
+        modal?.classList.add("flex");
       });
     });
 
-    //para poder abrir el boton de agregar producto
-    const modal = document.getElementById("modalProducto");
+    // CONTROL DEL MODAL (Abrir / Cerrar)
     const btnAbrir = document.getElementById("btnAbrirModal");
     const btnCerrar = document.getElementById("btnCerrarModal");
     const btnCancelar = document.getElementById("btnCancelar");
 
-    // Función para abrir
     btnAbrir?.addEventListener("click", () => {
+      form.reset(); // Limpiar si era edición previa
+      productoEditando = null;
+      document.getElementById("btnGuardar").textContent = "Guardar producto";
       modal?.classList.remove("hidden");
       modal?.classList.add("flex");
     });
 
-    // Función para cerrar (con la X o Cancelar)
     const cerrarModal = () => {
       modal?.classList.add("hidden");
       modal?.classList.remove("flex");
@@ -415,12 +533,49 @@ const { data: productos } = await supabase.from("productos").select(`
     btnCerrar?.addEventListener("click", cerrarModal);
     btnCancelar?.addEventListener("click", cerrarModal);
 
-    // Cerrar también si hacen clic fuera del cuadro blanco del modal
     modal?.addEventListener("click", (e) => {
       if (e.target === modal) {
         cerrarModal();
       }
     });
+
+    const inputBuscador = document.getElementById("inputBuscador");
+    const selectFiltro = document.getElementById("selectFiltroCategoria");
+    const mensajeSinResultados = document.getElementById(
+      "mensajeSinResultados",
+    );
+
+    const filtrarTabla = () => {
+      const textoBusqueda = inputBuscador?.value.toLowerCase() || "";
+      const categoriaSeleccionada = selectFiltro?.value || "todos";
+
+      const filas = document.querySelectorAll("tbody tr");
+      let encontrados = 0;
+
+      filas.forEach((fila) => {
+        const textoFila = fila.textContent?.toLowerCase() || "";
+        const coincideTexto = textoFila.includes(textoBusqueda);
+
+        // Si tienes el id de la categoría en la fila (opcional), puedes afinarlo aquí,
+        // por ahora filtra por el texto general de la fila:
+        if (coincideTexto) {
+          fila.style.display = "";
+          encontrados++;
+        } else {
+          fila.style.display = "none";
+        }
+      });
+
+      // Mostrar u ocultar el mensaje si no hay coincidencias
+      if (encontrados === 0) {
+        mensajeSinResultados?.classList.remove("hidden");
+      } else {
+        mensajeSinResultados?.classList.add("hidden");
+      }
+    };
+
+    inputBuscador?.addEventListener("input", filtrarTabla);
+    selectFiltro?.addEventListener("change", filtrarTabla);
   </script>
 
   <div
