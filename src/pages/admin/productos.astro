@@ -230,6 +230,18 @@ const totalProductos = productos?.length || 0;
               class="border border-gray-200 bg-gray-50 p-2 rounded-xl w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 transition"
             />
           </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Estado del Producto</label
+            >
+            <select
+              name="estado"
+              class="w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"
+            >
+              <option value="true">Activo (Visible en la tienda)</option>
+              <option value="false">Borrador (Oculto)</option>
+            </select>
+          </div>
 
           <div
             class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100"
@@ -403,13 +415,16 @@ const totalProductos = productos?.length || 0;
           .from("productos")
           .getPublicUrl(nombreArchivo).data.publicUrl;
       }
-
+      // Capturamos el valor del select de estado y lo convertimos a booleano real
+      const selectEstado = form.querySelector("[name='estado']");
+      const valorEstado = selectEstado ? selectEstado.value === "true" : true;
       const producto = {
         nombre: datos.get("nombre"),
         descripcion: datos.get("descripcion"),
         precio: Number(datos.get("precio")),
         stock: Number(datos.get("stock")),
         categoria_id: datos.get("categoria_id"),
+        estado: valorEstado, // 👈 Esto envía true o false de forma limpia
       };
 
       let metodo = "POST";
@@ -593,6 +608,7 @@ const totalProductos = productos?.length || 0;
             <th class="py-4 px-6">Categoría</th>
             <th class="py-4 px-6">Precio</th>
             <th class="py-4 px-6">Stock</th>
+            <th class="py-4 px-6 text-center">Estado</th>
             <th class="py-4 px-6 text-center">Acciones</th>
           </tr>
         </thead>
@@ -638,6 +654,14 @@ const totalProductos = productos?.length || 0;
                     class={`font-medium ${prod.stock <= 5 ? "text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-xs" : "text-gray-700"}`}
                   >
                     {prod.stock}
+                  </span>
+                </td>
+
+                <td class="py-4 px-6 text-center">
+                  <span
+                    class={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${prod.estado !== false ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-600"}`}
+                  >
+                    {prod.estado !== false ? "Activo" : "Borrador"}
                   </span>
                 </td>
 
