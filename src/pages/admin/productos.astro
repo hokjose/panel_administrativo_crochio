@@ -35,7 +35,9 @@ const totalProductos = productos?.length || 0;
           {totalProductos === 1 ? "producto" : "productos"}
         </span>
       </div>
-
+      {
+        /*-------------VENTANA MODAL PARA AGREGAR NUEVO PRODUCTO-----------------------*/
+      }
       <button
         id="btnAbrirModal"
         class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-md shadow-rose-200 transition flex items-center gap-2 text-sm"
@@ -59,7 +61,9 @@ const totalProductos = productos?.length || 0;
 
     {/* Fila 2: Lupa de buscador y Selector deslizable de categorías */}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* 1. Lupa de Buscador */}
+      {
+        /* ------------------------------------1. LUPA DE BUSCADOR ----------------------------------------------------*/
+      }
       <div class="relative">
         <div
           class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400"
@@ -87,7 +91,9 @@ const totalProductos = productos?.length || 0;
         />
       </div>
 
-      {/* 2. Ventana deslizable (Select) de Categorías con opción "Todos" */}
+      {
+        /*---------------- 2. Ventana deslizable (Select) de Categorías con opción "Todos"------------------- */
+      }
       <div>
         <select
           id="selectFiltroCategoria"
@@ -122,9 +128,9 @@ const totalProductos = productos?.length || 0;
       >
         <div class="mb-4">
           <h3 class="font-bold text-lg text-blue-800">Nuevo Producto</h3>
-          <h4 class="text-xs text-gray-500 mt-0.5">
+          <h3 class="text-xs text-gray-500 mt-0.5">
             A continuación en esta sección ingresa los campos del nuevo producto
-          </h4>
+          </h3>
         </div>
         <button
           id="btnCerrarModal"
@@ -229,18 +235,6 @@ const totalProductos = productos?.length || 0;
               accept="image/png,image/jpeg,image/jpg,image/webp"
               class="border border-gray-200 bg-gray-50 p-2 rounded-xl w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 transition"
             />
-          </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Estado del Producto</label
-            >
-            <select
-              name="estado"
-              class="w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"
-            >
-              <option value="true">Activo (Visible en la tienda)</option>
-              <option value="false">Borrador (Oculto)</option>
-            </select>
           </div>
 
           <div
@@ -571,13 +565,19 @@ const totalProductos = productos?.length || 0;
         const textoFila = fila.textContent?.toLowerCase() || "";
         const coincideTexto = textoFila.includes(textoBusqueda);
 
-        // Si tienes el id de la categoría en la fila (opcional), puedes afinarlo aquí,
-        // por ahora filtra por el texto general de la fila:
-        if (coincideTexto) {
-          fila.style.display = "";
+        // Obtenemos el ID de la categoría que guardamos en la fila
+        const categoriaFila = fila.getAttribute("data-categoria");
+
+        // Evaluamos si coincide con el texto de búsqueda Y con la categoría seleccionada
+        const coincideCategoria =
+          categoriaSeleccionada === "todos" ||
+          categoriaFila === categoriaSeleccionada;
+
+        if (coincideTexto && coincideCategoria) {
+          fila.style.display = ""; // Muestra la fila
           encontrados++;
         } else {
-          fila.style.display = "none";
+          fila.style.display = "none"; // Oculta la fila
         }
       });
 
@@ -608,7 +608,6 @@ const totalProductos = productos?.length || 0;
             <th class="py-4 px-6">Categoría</th>
             <th class="py-4 px-6">Precio</th>
             <th class="py-4 px-6">Stock</th>
-            <th class="py-4 px-6 text-center">Estado</th>
             <th class="py-4 px-6 text-center">Acciones</th>
           </tr>
         </thead>
@@ -616,7 +615,10 @@ const totalProductos = productos?.length || 0;
         <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
           {
             productos?.map((prod) => (
-              <tr class="hover:bg-rose-50/30 transition-colors">
+              <tr
+                data-categoria={prod.categoria_id}
+                class="hover:bg-rose-50/30 transition-colors"
+              >
                 <td class="py-4 px-6">
                   {prod.imagen ? (
                     <img
@@ -654,14 +656,6 @@ const totalProductos = productos?.length || 0;
                     class={`font-medium ${prod.stock <= 5 ? "text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-xs" : "text-gray-700"}`}
                   >
                     {prod.stock}
-                  </span>
-                </td>
-
-                <td class="py-4 px-6 text-center">
-                  <span
-                    class={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${prod.estado !== false ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-600"}`}
-                  >
-                    {prod.estado !== false ? "Activo" : "Borrador"}
                   </span>
                 </td>
 
