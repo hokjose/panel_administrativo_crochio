@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 const { title } = Astro.props;
+const pathname = Astro.url.pathname;
 ---
 
 <html lang="es">
@@ -19,12 +20,27 @@ const { title } = Astro.props;
         >
         <a
           href="/admin/productos"
-          class="block py-2 px-4 hover:bg-slate-800 rounded">Productos</a
+          class:list={[
+            "block py-2 px-4 rounded transition",
+            pathname === "/admin/productos"
+              ? "bg-slate-900 text-white font-semibold"
+              : "hover:bg-slate-800",
+          ]}
         >
+          Productos
+        </a>
+
         <a
           href="/admin/categorias"
-          class="block py-2 px-4 hover:bg-slate-800 rounded">categorias</a
+          class:list={[
+            "block py-2 px-4 rounded transition",
+            pathname === "/admin/categorias"
+              ? "bg-slate-900 text-white font-semibold"
+              : "hover:bg-slate-800",
+          ]}
         >
+          categorias
+        </a>
 
         <button
           id="btnCerrarSesion"

@@ -2,19 +2,108 @@
 import AdminLayout from "../../layouts/AdminLayout.astro";
 ---
 
-<AdminLayout title="Dashboard">
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="p-6 bg-white rounded shadow border-l-4 border-cyan-500">
-      <h3 class="text-gray-500">Total Productos</h3>
-      <p class="text-3xl font-bold">24</p>
-    </div>
-    <div class="p-6 bg-white rounded shadow border-l-4 border-emerald-500">
-      <h3 class="text-gray-500">Pedidos Hoy</h3>
-      <p class="text-3xl font-bold">5</p>
+<AdminLayout title="Dashboard Principal">
+  <div class="space-y-6">
+    <!-- Encabezado de Bienvenida -->
+    <div
+      class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+    >
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 tracking-tight">
+          Panel de Administración 🚀
+        </h1>
+        <p class="text-sm text-gray-500 mt-1">
+          Gestiona tu catálogo, categorías y el flujo de tu tienda en un solo
+          lugar.
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a
+          href="/admin/productos"
+          class="bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition"
+        >
+          Ir a Productos
+        </a>
+      </div>
     </div>
 
-    <div class="p-6 bg-white rounded shadow border-l-4 border-emerald-500">
-      <p class="text-3xl font-bold">25</p>
+    <!-- Tarjetas de Estadísticas Principales -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        class="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-cyan-500"
+      >
+        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">
+          Total Productos
+        </h3>
+        <p class="text-3xl font-extrabold text-gray-900 mt-4">24</p>
+      </div>
+      <div
+        class="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-emerald-500"
+      >
+        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">
+          Pedidos Hoy
+        </h3>
+        <p class="text-3xl font-extrabold text-gray-900 mt-4">5</p>
+      </div>
+      <div
+        class="p-6 bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-indigo-500"
+      >
+        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">
+          Categorías Activas
+        </h3>
+        <p class="text-3xl font-extrabold text-gray-900 mt-4">6</p>
+      </div>
+    </div>
+
+    {/* Sección de Accesos y Botones Principales con Instrucciones */}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Botón de Productos + Instrucción */}
+      <div
+        class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between"
+      >
+        <div>
+          <h2 class="text-lg font-bold text-gray-800 mb-2">
+            📦 Módulo de Productos
+          </h2>
+          <p class="text-sm text-gray-600 mb-4 leading-relaxed">
+            <strong>Instrucciones:</strong> Utiliza esta sección para dar de alta
+            nuevos artículos, actualizar precios, modificar imágenes del catálogo
+            en Supabase o eliminar productos descontinuados.
+          </p>
+        </div>
+        <div>
+          <a
+            href="/admin/productos"
+            class="inline-block py-2.5 px-5 bg-gray-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl transition shadow-sm text-center w-full"
+          >
+            Gestionar Productos
+          </a>
+        </div>
+      </div>
+
+      {/* Botón de Categorías + Instrucción */}
+      <div
+        class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between"
+      >
+        <div>
+          <h2 class="text-lg font-bold text-gray-800 mb-2">
+            📂 Módulo de Categorías
+          </h2>
+          <p class="text-sm text-gray-600 mb-4 leading-relaxed">
+            <strong>Instrucciones:</strong> Administra las familias o clasificaciones
+            de tus tejidos. Asegúrate de configurar correctamente los enlaces con
+            las tablas de productos para mantener el orden visual en la tienda.
+          </p>
+        </div>
+        <div>
+          <a
+            href="/admin/categorias"
+            class="inline-block py-2.5 px-5 bg-gray-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl transition shadow-sm text-center w-full"
+          >
+            Gestionar Categorías
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </AdminLayout>
