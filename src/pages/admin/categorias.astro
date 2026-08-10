@@ -11,25 +11,113 @@ const { data: categorias } = await supabase
 <AdminLayout title="Categorias">
   <h1 class="text-3xl font-bold mb-6">categorias</h1>
 
-  <form id="formCategoria" class="space-y-4 mb-8">
-    <input
-      name="nombre"
-      placeholder="Nombre"
-      class="border p-2 rounded w-full"
-      required
-    />
+  <!-- 1. Botón principal para abrir la ventana modal -->
+  <button
+    type="button"
+    id="btnAbrirModal"
+    class="bg-rose-600 hover:bg-rose-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition cursor-pointer"
+  >
+    + Crear nueva categoría
+  </button>
 
-    <textarea
-      name="descripcion"
-      placeholder="descripcion"
-      class="border p-2 rounded w-full"></textarea>
+  <!-- 2. Ventana Modal (Oculta por defecto con 'hidden') -->
+  <div
+    id="modalCategoria"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden px-4"
+  >
+    <!-- Contenedor de la ventana -->
+    <div
+      class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden p-6 relative"
+    >
+      <!-- Encabezado del Modal -->
+      <div
+        class="flex items-center justify-between pb-4 border-b border-gray-100 mb-4"
+      >
+        <h3 class="text-lg font-bold text-gray-800">Crear Nueva Categoría</h3>
+        <button
+          type="button"
+          id="btnCerrarModalX"
+          class="text-gray-400 hover:text-gray-600 font-bold text-xl p-1 cursor-pointer"
+        >
+          &times;
+        </button>
+      </div>
 
-    <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded">
-      Guardar
-    </button>
+      <!-- Tu Formulario Original Transformado -->
+      <form id="formCategoria" class="space-y-4">
+        <div>
+          <label
+            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
+            >Nombre de la Categoría</label
+          >
+          <input
+            name="nombre"
+            placeholder="Ej: Tejidos de lana"
+            class="border border-gray-200 p-2.5 rounded-xl w-full text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+            required
+          />
+        </div>
 
-    <p id="mensaje" class="text-red-600 mt-2"></p>
-  </form>
+        <div>
+          <label
+            class="block text-xs font-semibold text-gray-600 uppercase mb-1"
+            >Descripción</label
+          >
+          <textarea
+            name="descripcion"
+            placeholder="Escribe una breve descripción..."
+            rows="3"
+            class="border border-gray-200 p-2.5 rounded-xl w-full text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+          ></textarea>
+        </div>
+
+        <!-- Botones de Acción (Cancelar y Guardar) -->
+        <div
+          class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-6"
+        >
+          <button
+            type="button"
+            id="btnCancelarModal"
+            class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold px-4 py-2.5 rounded-xl transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            id="btnGuardar"
+            class="bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <!-- Spinner de carga (oculto por defecto con 'hidden') -->
+            <svg
+              id="spinner"
+              class="animate-spin h-4 w-4 text-white hidden"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+
+            <span id="textoBoton">Guardar Categoría</span>
+          </button>
+        </div>
+
+        <p id="mensaje" class="text-red-600 text-sm mt-2"></p>
+      </form>
+    </div>
+  </div>
 
   <p id="mensaje" class="text-red-600 mt-2"></p>
 
@@ -175,6 +263,42 @@ const { data: categorias } = await supabase
         document.querySelector("button[type='submit']").textContent =
           "Actualizar";
       });
+    });
+    const btnAbrir = document.getElementById("btnAbrirModal");
+    const btnCerrarX = document.getElementById("btnCerrarModalX");
+    const btnCancelar = document.getElementById("btnCancelarModal");
+    const modal = document.getElementById("modalCategoria");
+
+    function abrir() {
+      modal?.classList.remove("hidden");
+    }
+
+    function cerrar() {
+      modal?.classList.add("hidden");
+    }
+
+    btnAbrir?.addEventListener("click", abrir);
+    btnCerrarX?.addEventListener("click", cerrar);
+    btnCancelar?.addEventListener("click", cerrar);
+
+    // Cerrar haciendo clic fuera del recuadro blanco
+    modal?.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        cerrar();
+      }
+    });
+    const formCategoria = document.getElementById("formCategoria");
+    const btnGuardar = document.getElementById("btnGuardar");
+    const spinner = document.getElementById("spinner");
+    const textoBoton = document.getElementById("textoBoton");
+
+    formCategoria?.addEventListener("submit", () => {
+      // Bloquea el botón, muestra el spinner y cambia el texto
+      btnGuardar?.setAttribute("disabled", "true");
+      spinner?.classList.remove("hidden");
+      if (textoBoton) {
+        textoBoton.textContent = "Creando categoría...";
+      }
     });
   </script>
 </AdminLayout>
